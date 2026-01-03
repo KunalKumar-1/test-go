@@ -99,3 +99,64 @@ func TestHandleHelloWrongParameterized(t *testing.T) {
 			string(expectedMessage), string(w.Body.Bytes()), w.Body.String())
 	}
 }
+
+func TestHandleUserResponsesHello(t *testing.T) {
+	r := httptest.NewRequest(http.MethodGet, "/responses/TestMan/hello", nil)
+	r.SetPathValue("user", "TestMan")
+	w := httptest.NewRecorder()
+
+	handleUserResponsesHello(w, r)
+
+	desiredCode := http.StatusOK
+	if w.Code != desiredCode {
+		t.Errorf("bad response code:  expected %d, got %d\nbody: %s\n",
+			desiredCode, w.Code, w.Body.String())
+	}
+
+	expectedMessage := []byte("Hello TestMan!\n")
+	if !bytes.Equal(w.Body.Bytes(), expectedMessage) {
+		t.Errorf("bad response body: expected %s, got %s\nbody: %s\n",
+			string(expectedMessage), string(w.Body.Bytes()), w.Body.String())
+	}
+}
+
+func TestHandleHelloHeader(t *testing.T) {
+	r := httptest.NewRequest(http.MethodGet, "/user/hello", nil)
+	r.Header.Set("user", "TestMan")
+
+	w := httptest.NewRecorder()
+
+	handleHelloHeader(w, r)
+
+	desiredCode := http.StatusOK
+	if w.Code != desiredCode {
+		t.Errorf("bad response code: expected %d, got %d\nbody: %s\n",
+			desiredCode, w.Code, w.Body.String())
+	}
+
+	expectedMessage := []byte("Hello TestMan!\n")
+	if !bytes.Equal(w.Body.Bytes(), expectedMessage) {
+		t.Errorf("bad response body: expected %s, got %s\nbody: %s\n",
+			string(expectedMessage), string(w.Body.Bytes()), w.Body.String())
+	}
+}
+
+func TestHandleHelloNoHeader(t *testing.T) {
+	r := httptest.NewRequest(http.MethodGet, "/user/hello", nil)
+
+	w := httptest.NewRecorder()
+
+	handleHelloNoHeader(w, r)
+
+	desiredCode := http.StatusBadRequest
+	if w.Code != desiredCode {
+		t.Errorf("bad response code: expected %d, got %d\nbody: %s\n",
+			desiredCode, w.Code, w.Body.String())
+	}
+
+	expectedMessage := []byte("invalid username provided\n")
+	if !bytes.Equal(w.Body.Bytes(), expectedMessage) {
+		t.Errorf("bad response body: expected %s, got %s\nbody: %s\n",
+			string(expectedMessage), string(w.Body.Bytes()), w.Body.String())
+	}
+}

@@ -11,9 +11,11 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", handleRoot)
+	mux.HandleFunc("/{$}", handleRoot)
 	mux.HandleFunc("/goodbye", handleGoodbye)
 	mux.HandleFunc("/hello/", handleHelloParameterized)
+	mux.HandleFunc("/responses/{user}/hello/", handleUserResponsesHello)
+	mux.HandleFunc("/user/hello", handleHelloHeader)
 
 	fmt.Println("Listening on port 4000")
 
@@ -52,6 +54,43 @@ func handleHelloParameterized(w http.ResponseWriter, r *http.Request) {
 		username = userlist[0]
 	}
 
+	handleHello(w, username)
+}
+
+func handleUserResponsesHello(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Requested Path: ", r.URL.Path)
+
+	username := r.PathValue("user")
+
+	handleHello(w, username)
+}
+
+func handleHelloHeader(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Requested Path: ", r.URL.Path)
+	//username := r.PathValue("user")
+	username := r.Header.Get("user")
+	if username == "" {
+		http.Error(w, "invalid username provided", http.StatusBadRequest)
+		return
+	}
+
+	handleHello(w, username)
+}
+
+func handleHelloNoHeader(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Requested Path: ", r.URL.Path)
+	//username := r.PathValue("user")
+	username := r.Header.Get("user")
+	if username == "" {
+		http.Error(w, "invalid username provided", http.StatusBadRequest)
+		return
+	}
+
+	handleHello(w, username)
+}
+
+func handleHello(w http.ResponseWriter, username string) {
+
 	var output bytes.Buffer
 	output.WriteString("Hello ")
 	output.WriteString(username)
@@ -59,7 +98,7 @@ func handleHelloParameterized(w http.ResponseWriter, r *http.Request) {
 
 	_, err := w.Write(output.Bytes())
 	if err != nil {
-		slog.Error("error starting response body", "err", err.Error())
+		slog.Error("error starting response body", "err: ", err.Error())
 		return
 	}
 }

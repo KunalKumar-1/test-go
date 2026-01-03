@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -155,6 +156,84 @@ func TestHandleHelloNoHeader(t *testing.T) {
 	}
 
 	expectedMessage := []byte("invalid username provided\n")
+	if !bytes.Equal(w.Body.Bytes(), expectedMessage) {
+		t.Errorf("bad response body: expected %s, got %s\nbody: %s\n",
+			string(expectedMessage), string(w.Body.Bytes()), w.Body.String())
+	}
+}
+
+func TestHandleJSON(t *testing.T) {
+	testRequest := UserData{
+		Name: "human",
+	}
+
+	marshalledRequestBody, err := json.Marshal(testRequest)
+	if err != nil {
+		t.Fatal("error marshalling testRequest data:", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/josn", bytes.NewBuffer(marshalledRequestBody))
+
+	w := httptest.NewRecorder()
+
+	handleJSON(w, req)
+
+	desiredCode := http.StatusOK
+	if w.Code != desiredCode {
+		t.Errorf("bad response code: expected %v got %v\nbody: %s\n",
+			desiredCode, w.Code, w.Body.String())
+	}
+
+	expectedMessage := []byte("Hello human!\n")
+	if !bytes.Equal(w.Body.Bytes(), expectedMessage) {
+		t.Errorf("bad response body: expected %s, got %s\nbody: %s\n",
+			string(expectedMessage), string(w.Body.Bytes()), w.Body.String())
+	}
+}
+
+func TestHandleJSONEmptyBody(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPost, "/json", nil)
+
+	w := httptest.NewRecorder()
+
+	handleJSON(w, req)
+
+	desiredCode := http.StatusBadRequest
+	if w.Code != desiredCode {
+		t.Errorf("bad response code: expected %v got %v\nbody: %s\n",
+			desiredCode, w.Code, w.Body.String())
+	}
+
+	expectedMessage := []byte("empty request body\n")
+	if !bytes.Equal(w.Body.Bytes(), expectedMessage) {
+		t.Errorf("bad response body: expected %s, got %s\nbody: %s\n",
+			string(expectedMessage), string(w.Body.Bytes()), w.Body.String())
+	}
+}
+
+func TestHandleJSONEmptyNameFeild(t *testing.T) {
+	testRequest := UserData{
+		Name: "",
+	}
+
+	marshalledRequestBody, err := json.Marshal(testRequest)
+	if err != nil {
+		t.Fatal("error marshalling testRequest data:", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/json", bytes.NewBuffer(marshalledRequestBody))
+
+	w := httptest.NewRecorder()
+
+	handleJSON(w, req)
+
+	desiredCode := http.StatusBadRequest
+	if w.Code != desiredCode {
+		t.Errorf("bad response code: expected %v got %v\nbody: %s\n",
+			desiredCode, w.Code, w.Body.String())
+	}
+
+	expectedMessage := []byte("invalid request body!\n")
 	if !bytes.Equal(w.Body.Bytes(), expectedMessage) {
 		t.Errorf("bad response body: expected %s, got %s\nbody: %s\n",
 			string(expectedMessage), string(w.Body.Bytes()), w.Body.String())

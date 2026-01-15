@@ -11,7 +11,9 @@ import (
 )
 
 type UserData struct {
-	Name string
+	FirstName string
+	LastName  string
+	Email     string
 }
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 	mux.HandleFunc("/hello/", handleHelloParameterized)
 	mux.HandleFunc("/responses/{user}/hello/", handleUserResponsesHello)
 	mux.HandleFunc("/user/hello", handleHelloHeader)
-	mux.HandleFunc("/json", handleJSON)
+	mux.HandleFunc("POST /json", handleJSON)
 
 	fmt.Println("Listening on port 4000")
 
@@ -119,12 +121,12 @@ func handleJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if reqData.Name == "" {
+	if reqData.FirstName == "" {
 		http.Error(w, "invalid request body!", http.StatusBadRequest)
 		return
 	}
 
-	handleHello(w, reqData.Name)
+	handleHello(w, reqData.FirstName)
 
 }
 

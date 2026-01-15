@@ -164,7 +164,7 @@ func TestHandleHelloNoHeader(t *testing.T) {
 
 func TestHandleJSON(t *testing.T) {
 	testRequest := UserData{
-		Name: "human",
+		FirstName: "human",
 	}
 
 	marshalledRequestBody, err := json.Marshal(testRequest)
@@ -213,7 +213,7 @@ func TestHandleJSONEmptyBody(t *testing.T) {
 
 func TestHandleJSONEmptyNameFeild(t *testing.T) {
 	testRequest := UserData{
-		Name: "",
+		FirstName: "",
 	}
 
 	marshalledRequestBody, err := json.Marshal(testRequest)
